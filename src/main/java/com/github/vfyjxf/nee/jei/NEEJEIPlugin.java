@@ -31,6 +31,8 @@ public class NEEJEIPlugin implements IModPlugin {
         Table<Class<?>, ResourceLocation, IRecipeTransferHandler<?>> newRegistry = Table.hashBasedTable();
         boolean patternHandlerFound = false;
         boolean craftingHandlerFound = false;
+        boolean wirelessCraftingRegistered = false;
+        
         for (final Cell<Class<?>, ResourceLocation, IRecipeTransferHandler<?>> currentCell : recipeTransferRegistration.getRecipeTransferHandlers().cellSet()) {
             if (PatternTermContainer.class.equals(currentCell.getRowKey())) {
                 patternHandlerFound = true;
@@ -46,8 +48,26 @@ public class NEEJEIPlugin implements IModPlugin {
 
         newRegistry.put(PatternTermContainer.class, Constants.UNIVERSAL_RECIPE_TRANSFER_UID, new PatternRecipeTransferHandler());
         newRegistry.put(CraftingTermContainer.class, VanillaRecipeCategoryUid.CRAFTING, new CraftingHelperTransferHandler(registration.getTransferHelper()));
+        
+        // ✅ Wireless Crafting Terminal support — only registers if AE2WTLib is present
+        try {
+            Class<?> wirelessContainer = Class.forName("tfar.ae2wt.wirelesscraftingterminal.WirelessCraftingTerminalContainer");
+            Class<?> recipeCategoryUid = Class.forName("mezz.jei.api.constants.VanillaRecipeCategoryUid");
+            var craftingField = recipeCategoryUid.getField("CRAFTING");
+            Object craftingUid = craftingField.get(null);
+            newRegistry.put(wirelessContainer.class, (ResourceLocation) craftingUid, new WirelessCraftingHelperTransferHandler(registration.getTransferHelper()));
+            wirelessCraftingRegistered = true;
+            NotEnoughEnergistics.logger.info("AE2WTLib Wireless Crafting Terminal support registered successfully");
+        } catch (ClassNotFoundException e) {
+            // AE2WTLib not installed — skip wireless support silently
+        } catch (Exception e) {
+            NotEnoughEnergistics.logger.warn("Failed to register AE2WTLib Wireless Crafting Terminal support: " + e.getMessage());
+        }
+        
         if (patternHandlerFound && craftingHandlerFound) {
             NotEnoughEnergistics.logger.info("AE2 RecipeTransferHandler Replaced Successfully (Registered prior)");
+        } else if (wirelessCraftingRegistered) {
+            newRegistry = new WrappedTable<>(newRegistry, registration.getTransferHelper());
         } else {
             newRegistry = new WrappedTable<>(newRegistry, registration.getTransferHelper());
         }
