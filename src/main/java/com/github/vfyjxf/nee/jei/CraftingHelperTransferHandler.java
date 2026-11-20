@@ -1,6 +1,5 @@
 package com.github.vfyjxf.nee.jei;
 
-import appeng.container.me.items.CraftingTermContainer;
 import appeng.core.sync.network.NetworkHandler;
 import appeng.core.sync.packets.JEIRecipePacket;
 import com.github.vfyjxf.nee.client.KeyBindings;
@@ -22,6 +21,7 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.IItemHandler;
+import tfar.ae2wt.wirelesscraftingterminal.WirelessCraftingTerminalContainer;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.Map;
 import static com.github.vfyjxf.nee.client.KeyBindings.craftingHelperNoPreview;
 import static com.github.vfyjxf.nee.client.KeyBindings.craftingHelperPreview;
 
-public class CraftingHelperTransferHandler implements IRecipeTransferHandler<CraftingTermContainer> {
+public class WirelessCraftingHelperTransferHandler implements IRecipeTransferHandler<WirelessCraftingTerminalContainer> {
 
     private final IRecipeTransferHandlerHelper helper;
     private boolean canSendReference;
@@ -40,24 +40,23 @@ public class CraftingHelperTransferHandler implements IRecipeTransferHandler<Cra
     public static int stackIndex = 1;
     public static boolean autoStart = false;
 
-    public CraftingHelperTransferHandler(IRecipeTransferHandlerHelper helper) {
+    public WirelessCraftingHelperTransferHandler(IRecipeTransferHandlerHelper helper) {
         this.helper = helper;
     }
 
-
     @Override
-    public Class<CraftingTermContainer> getContainerClass() {
-        return CraftingTermContainer.class;
+    public Class<WirelessCraftingTerminalContainer> getContainerClass() {
+        return WirelessCraftingTerminalContainer.class;
     }
 
     @Nullable
     @Override
-    public IRecipeTransferError transferRecipe(CraftingTermContainer container, Object recipe, IRecipeLayout recipeLayout, PlayerEntity player, boolean maxTransfer, boolean doTransfer) {
-        tracker = crateTracker(container, recipeLayout, player);
+    public IRecipeTransferError transferRecipe(WirelessCraftingTerminalContainer container, Object recipe, IRecipeLayout recipeLayout, PlayerEntity player, boolean maxTransfer, boolean doTransfer) {
+        tracker = createTracker(container, recipeLayout, player);
         IRecipeTransferError error = checkError(recipe, player);
         if (error == null) {
             if (doTransfer) {
-                tracker = crateTracker(container, recipeLayout, player);
+                tracker = createTracker(container, recipeLayout, player);
                 boolean doCraftingHelp = KeyBindings.isKeyDown(craftingHelperPreview) || KeyBindings.isKeyDown(craftingHelperNoPreview);
                 autoStart = KeyBindings.isKeyDown(craftingHelperNoPreview);
                 if (doCraftingHelp && !tracker.getRequireToCraftStacks().isEmpty()) {
@@ -68,7 +67,6 @@ public class CraftingHelperTransferHandler implements IRecipeTransferHandler<Cra
                             break;
                         }
                     }
-
                 } else {
                     moveItems(recipe, recipeLayout);
                 }
@@ -79,19 +77,17 @@ public class CraftingHelperTransferHandler implements IRecipeTransferHandler<Cra
         return error;
     }
 
-    private IngredientTracker crateTracker(CraftingTermContainer container, IRecipeLayout recipeLayout, PlayerEntity player) {
+    private IngredientTracker createTracker(WirelessCraftingTerminalContainer container, IRecipeLayout recipeLayout, PlayerEntity player) {
         IngredientTracker tracker = new IngredientTracker(recipeLayout);
 
         List<ItemStack> inventoryStacks = new ArrayList<>();
 
-        //check stacks in player's inventory
         for (int slotIndex = 0; slotIndex < player.inventory.getContainerSize(); slotIndex++) {
             if (!player.inventory.getItem(slotIndex).isEmpty()) {
                 inventoryStacks.add(player.inventory.getItem(slotIndex).copy());
             }
         }
 
-        //check stacks in crafting grid
         final IItemHandler craftMatrix = container.getInventoryByName("crafting");
         for (int slotIndex = 0; slotIndex < craftMatrix.getSlots(); slotIndex++) {
             if (!craftMatrix.getStackInSlot(slotIndex).isEmpty()) {
@@ -108,16 +104,12 @@ public class CraftingHelperTransferHandler implements IRecipeTransferHandler<Cra
         return tracker;
     }
 
-    /**
-     * base on RecipeTransferHandler.transferRecipe
-     */
     private void moveItems(Object recipe, IRecipeLayout recipeLayout) {
         if (recipe instanceof IRecipe) {
             ResourceLocation recipeId = ((IRecipe<?>) recipe).getId();
             if (this.canSendReference) {
                 NetworkHandler.instance().sendToServer(new JEIRecipePacket(recipeId, true));
             } else {
-
                 NonNullList<Ingredient> flatIngredients = NonNullList.withSize(9, Ingredient.EMPTY);
                 ItemStack output = ItemStack.EMPTY;
 
@@ -148,12 +140,6 @@ public class CraftingHelperTransferHandler implements IRecipeTransferHandler<Cra
         }
     }
 
-    /**
-     * Get errors related to the recipe, such as missing id error,but don't get the error that NEE has provided
-     * base on RecipeTransferHandler.transferRecipe
-     *
-     * @return Those errors related to the recipe
-     */
     private IRecipeTransferError checkError(Object recipe, PlayerEntity player) {
         if (!(recipe instanceof IRecipe)) {
             return this.helper.createInternalError();
@@ -182,5 +168,4 @@ public class CraftingHelperTransferHandler implements IRecipeTransferHandler<Cra
         }
         return null;
     }
-
 }
