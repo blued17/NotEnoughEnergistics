@@ -34,9 +34,7 @@ minecraft {
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
-                neenergistics {
-                    source sourceSets.main
-                }
+                neenergistics { source sourceSets.main }
             }
         }
         server {
@@ -46,18 +44,14 @@ minecraft {
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
-                neenergistics {
-                    source sourceSets.main
-                }
+                neenergistics { source sourceSets.main }
             }
         }
         data {
             workingDirectory project.file('run')
             args '--mod', 'neenergistics', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
             mods {
-                neenergistics {
-                    source sourceSets.main
-                }
+                neenergistics { source sourceSets.main }
             }
         }
     }
@@ -67,35 +61,33 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     mavenCentral()
-    
-    maven {
-        name = 'Forge'
-        url = 'https://maven.minecraftforge.net/'
-    }
-    
+
+    maven { url = 'https://maven.minecraftforge.net/' }
+
     maven {
         name = 'Modmaven'
         url = 'https://modmaven.dev/'
-        content {
-            includeGroup 'appeng'
-            includeGroup 'de.mari_023'
-        }
     }
-    
+
     maven {
         name = 'JEI'
         url = 'https://dvs1.progwml6.com/files/maven/'
+    }
+
+    maven {
+        name = 'ModMaven-K4U'
+        url = 'https://modmaven.k-4u.nl/'
     }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:1.16.5-${forge_version}"
 
-    compileOnly fg.deobf("mezz.jei:jei-1.16.5:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
     compileOnly fg.deobf("appeng:appliedenergistics2:${appeng_version}")
-    compileOnly fg.deobf("de.mari_023:ae2wtlib_api:${ae2wtlib_version}")
+    compileOnly fg.deobf("de.mari_023:ae2wtlib:${ae2wtlib_version}")
 
-    runtimeOnly fg.deobf("mezz.jei:jei-1.16.5:${jei_version}")
+    runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
     runtimeOnly fg.deobf("appeng:appliedenergistics2:${appeng_version}")
     runtimeOnly fg.deobf("de.mari_023:ae2wtlib:${ae2wtlib_version}")
 }
@@ -103,9 +95,7 @@ dependencies {
 processResources {
     inputs.property 'version', project.version
     filesMatching("META-INF/mods.toml") {
-        expand "version": project.version,
-                "jei_version": jei_version,
-                "appeng_version": appeng_version
+        expand "version": project.version
     }
 }
 
