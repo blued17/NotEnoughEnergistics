@@ -68,26 +68,37 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
+    mavenCentral()
+    
     maven {
-        name "Modmaven"
-        url "https://modmaven.dev/"
-        content {
-            includeGroup 'appeng'
-        }
+        name = 'Forge'
+        url = 'https://maven.minecraftforge.net/'
     }
+    
     maven {
-        name = 'Progwml6 maven'
-        url = 'https://dvs1.progwml6.com/files/maven/'
+        name = 'Modmaven'
+        url = 'https://modmaven.dev/'
     }
+    
     maven {
-        name = 'ModMaven'
+        name = 'ModMaven-K4U'
         url = 'https://modmaven.k-4u.nl'
     }
+    
     maven {
-        name = 'Cursemaven'
+        name = 'Progwml6 JEI'
+        url = 'https://dvs1.progwml6.com/files/maven/'
+    }
+    
+    maven {
+        name = 'CurseMaven'
         url = 'https://www.cursemaven.com/'
     }
-    maven { url "https://maven.shedaniel.me/" }
+    
+    maven {
+        name = 'Shedaniel'
+        url = 'https://maven.shedaniel.me/'
+    }
 }
 
 dependencies {
